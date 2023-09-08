@@ -132,7 +132,7 @@ void ProxyRecorder::back_step1(writable_u8_array_view key, Transport & backConn,
     backConn.send(back_x224_stream.get_produced_bytes());
 }
 
-void ProxyRecorder::front_nla(Transport & frontConn)
+void ProxyRecorder::front_nla(Transport & frontConn, std::string_view  nla_username, std::string_view nla_password)
 {
     LOG_IF(this->verbosity > 8, LOG_INFO, "======== NEGOCIATING_FRONT_NLA frontbuffer content ======");
 
@@ -146,6 +146,14 @@ void ProxyRecorder::front_nla(Transport & frontConn)
             // TODO use this->nego_server->credssp.set_password_hash();
             // bytes_view username_utf16 = this->nego_server->credssp.authenticate.UserName.buffer;
             // UTF16toResizableUTF8<std::string>(username_utf16);
+
+            auto [password_res, password_hash] = get_password_hash(
+                    this->nego_server->credssp.authenticate.UserName.buffer,
+                    this->nego_server->credssp.authenticate.DomainName.buffer,
+                    nla_username, nla_password);
+
+            this->nego_server->credssp.set_password_hash(password_res, password_hash);
+
             result << this->nego_server->credssp.authenticate_next({});
         }
         else {

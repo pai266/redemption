@@ -25,6 +25,8 @@
 #include "transport/recorder_transport.hpp"
 #include "core/RDP/x224.hpp"
 #include "core/RDP/tpdu_buffer.hpp"
+#include "core/RDP/nla/credssp.hpp"
+#include "proxy_recorder/extract_user_domain.hpp"
 
 #include <string>
 #include <memory>
@@ -43,6 +45,41 @@ class ProxyRecorder
 
     using PacketType = RecorderFile::PacketType;
 
+    std::pair<PasswordCallback,array_md4> get_password_hash(bytes_view user_av, bytes_view domain_av, std::string_view  nla_username, std::string_view nla_password)
+    {
+        LOG(LOG_INFO, "NTLM Check identity");
+        hexdump_d(user_av);
+
+        auto [username, domain] = extract_user_domain(nla_username);
+        // from protocol
+        auto tmp_utf8_user = UTF16toResizableUTF8_zstring<std::vector<char>>(user_av);
+        auto u8user = zstring_view::from_null_terminated(tmp_utf8_user);
+        auto tmp_utf8_domain = UTF16toResizableUTF8_zstring<std::vector<char>>(domain_av);
+        auto u8domain = zstring_view::from_null_terminated(tmp_utf8_domain);
+
+        LOG(LOG_INFO, "NTML IDENTITY(message): identity.User=%s identity.Domain=%s username=%.*s, domain=%.*s",
+            u8user, u8domain,
+            int(username.size()), username.data(), int(domain.size()), domain.data());
+
+        if (u8domain.size() == 0){
+            auto [identity_username, identity_domain] = extract_user_domain(u8user.to_sv());
+
+            bool user_match = (username == identity_username);
+            bool domain_match = (domain == identity_domain);
+
+            if (user_match && domain_match){
+                LOG(LOG_INFO, "known identity");
+                return {PasswordCallback::Ok, Md4(::UTF8toResizableUTF16<std::vector<uint8_t>>(nla_password))};
+            }
+        }
+        else if (u8user.to_sv() == username && u8domain.to_sv() == domain){
+            return {PasswordCallback::Ok, Md4(::UTF8toResizableUTF16<std::vector<uint8_t>>(nla_password))};
+        }
+
+        LOG(LOG_ERR, "Ntlm: unknwon identity");
+        return {PasswordCallback::Error, {}};
+    }
+
 public:
     ProxyRecorder(
         NlaTeeTransport & back_nla_tee_trans,
@@ -57,7 +94,7 @@ public:
 
     void front_step1(Transport & frontConn);
     void back_step1(writable_u8_array_view key, Transport & backConn, std::string const& nla_username, std::string nla_password);
-    void front_nla(Transport & frontConn);
+    void front_nla(Transport & frontConn, std::string_view  nla_username, std::string_view nla_password);
     void front_initial_pdu_negociation(Transport & backConn, bool is_nla);
     void back_nla_negociation(Transport & backConn);
     void back_initial_pdu_negociation(Transport & frontConn, bool is_nla);

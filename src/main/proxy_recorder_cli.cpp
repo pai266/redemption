@@ -170,7 +170,7 @@ public:
                     case ProxyRecorder::PState::NEGOCIATING_FRONT_NLA:
                         if (FD_ISSET(front_fd, &rset)) {
                             conn.frontBuffer.load_data(frontConn);
-                            conn.front_nla(frontConn);
+                            conn.front_nla(frontConn, this->nla_username, this->nla_password);
                         }
                         break;
 

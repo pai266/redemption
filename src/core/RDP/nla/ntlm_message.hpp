@@ -1211,6 +1211,10 @@ struct NTLMAuthenticateMessage {
 
     bool check_lm_response_from_authenticate(u8_array_view hash, u8_array_view server_challenge)
     {
+        if (this->LmChallengeResponse.buffer.size() == 0) {
+            return true;
+        }
+
         if (this->LmChallengeResponse.buffer.size() != 24) {
             return false;
         }
