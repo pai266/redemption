@@ -230,7 +230,7 @@ class ACLPassthrough():
 
 
     def start(self):
-        _status, _error = self.shared.receive_data()
+        self.shared.receive_data()
 
         device = "<host>$<application path>$<working dir>$<args> for Application"
         login = self.shared.get('login', MAGICASK) or MAGICASK
@@ -242,7 +242,7 @@ class ACLPassthrough():
             host = splitted[1]
             device = host
             password = ''
-
+''' 取消交互模式，此模式为用户手动输入目标地址
         interactive_data = {
             'target_password': password,
             'target_host': host,
@@ -253,7 +253,7 @@ class ACLPassthrough():
         kv = {}
 
         if MAGICASK in (device, login, host, password):
-            _status, _error = self.interactive_target(interactive_data)
+            self.interactive_target(interactive_data)
         else:
             self.shared.shared['login'] = login
             self.shared.shared['target_login'] = login
@@ -262,7 +262,7 @@ class ACLPassthrough():
             self.shared.shared['target_device'] = host
             self.shared.shared['real_target_device'] = host
             kv = interactive_data
-
+'''
         # uncomment the following to get the selector module
         # selector_data = {
         #     'target_login': 'Proxy\\Administrator\x01login 2\x01login 3',
@@ -271,8 +271,16 @@ class ACLPassthrough():
         # }
         # self.selector_target(selector_data)
 
+        # 测试，暂时写死后端地址
+        self.shared.shared['login'] = "rdp"
+        self.shared.shared['target_login'] = "rdp"
+        self.shared.shared['target_password'] = "SONiX266"
+        self.shared.shared['target_host'] = "47.96.115.243"
+        self.shared.shared['target_device'] = "47.96.115.243"
+        self.shared.shared['real_target_device'] = "47.96.115.243"
+
         kv = {}
-        # kv['is_rec'] = '1'  # Enable recording
+        kv['is_rec'] = '1'  # Enable recording
         kv['record_filebase'] = datetime.now().strftime("%Y-%m-%d/%H:%M-") + str(uuid.uuid4())
         kv['login'] = self.shared.get('target_login')
         kv['proto_dest'] = "RDP"
@@ -318,7 +326,7 @@ class ACLPassthrough():
                     Logger().info("Got Signal %s" % e)
                     got_signal = True
                 if self.proxy_conx in r:
-                    _status, _error = self.shared.receive_data();
+                    self.shared.receive_data();
 
                     if self.shared.is_asked('keepalive'):
                         self.shared.send_data({'keepalive': 'True'})
