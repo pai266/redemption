@@ -281,7 +281,7 @@ class ACLPassthrough():
 
         kv = {}
         kv['is_rec'] = '1'  # Enable recording
-        kv['record_filebase'] = datetime.now().strftime("%Y-%m-%d/%H:%M-") + str(uuid.uuid4())
+        kv['record_filebase'] = datetime.now().strftime("%Y%m%d%H%M-") + str(uuid.uuid4())
         kv['login'] = self.shared.get('target_login')
         kv['proto_dest'] = "RDP"
         kv['target_port'] = "3389"
