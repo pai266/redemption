@@ -1396,7 +1396,7 @@ inline NTLMAuthenticateMessage recvNTLMAuthenticateMessage(bytes_view raw_messag
 
     std::array<TmpNtlmField, 6> l{{
         {0, &self.LmChallengeResponse, "LmChallengeResponse"},
-        {0, &self.NtChallengeResponse, ""},
+        {0, &self.NtChallengeResponse, "NtChallengeResponse"},
         {0, &self.DomainName, "DomainName"},
         {0, &self.UserName, "UserName"},
         {0, &self.Workstation, "Workstation"},
