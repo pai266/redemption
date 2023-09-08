@@ -242,7 +242,7 @@ class ACLPassthrough():
             host = splitted[1]
             device = host
             password = ''
-''' 取消交互模式，此模式为用户手动输入目标地址
+        ''' 取消交互模式，此模式为用户手动输入目标地址
         interactive_data = {
             'target_password': password,
             'target_host': host,
@@ -262,7 +262,7 @@ class ACLPassthrough():
             self.shared.shared['target_device'] = host
             self.shared.shared['real_target_device'] = host
             kv = interactive_data
-'''
+        '''
         # uncomment the following to get the selector module
         # selector_data = {
         #     'target_login': 'Proxy\\Administrator\x01login 2\x01login 3',
